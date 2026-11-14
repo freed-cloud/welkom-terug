@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; manifest-src 'self'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welkom Terug – persoonlijk menu zonder app</title>
+<meta name="description" content="Demo: een tablet bij de ingang die vaste gasten herkent en hun vorige bestelling onthoudt. Zonder app, met privacy by design.">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<div class="demo-bar">Demo-versie · gegevens blijven op dit apparaat · <a href="https://github.com/freed-cloud/welkom-terug" target="_blank" rel="noopener noreferrer">over dit project</a></div>
+
+<main id="app">
+  <!-- Eerste keer: personeelspincode instellen -->
+  <section class="view" id="v-setup">
+    <h1>Welkom Terug instellen</h1>
+    <p>Kies een naam voor je zaak en een pincode voor het personeel. Met die pincode open je het beheerscherm.</p>
+    <label for="set-name">Naam van je zaak</label>
+    <input id="set-name" maxlength="60" placeholder="Café De Hoek">
+    <label for="set-pin">Personeelspincode (6 cijfers)</label>
+    <input id="set-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password">
+    <label for="set-pin2">Herhaal pincode</label>
+    <input id="set-pin2" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password">
+    <p class="error" id="set-err"></p>
+    <button class="btn big" id="set-go">Opslaan en starten</button>
+  </section>
+
+  <!-- Welkomstscherm op de tablet -->
+  <section class="view" id="v-welcome">
+    <p class="kicker" id="w-place"></p>
+    <h1>Welkom!</h1>
+    <p class="lead">Ben je hier eerder geweest? Log in met je voornaam en pincode, dan staat je vorige bestelling klaar.</p>
+    <div class="card">
+      <label for="w-name">Voornaam</label>
+      <input id="w-name" maxlength="40" autocomplete="off">
+      <label for="w-pin">Pincode (4 cijfers)</label>
+      <input id="w-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+      <p class="error" id="w-err"></p>
+      <button class="btn big" id="w-login">Inloggen</button>
+    </div>
+    <div class="row-btns">
+      <button class="btn ghost" id="w-new">Ik ben nieuw</button>
+      <button class="btn ghost" id="w-anon">Bestellen zonder profiel</button>
+    </div>
+    <button class="staff-link" id="w-staff">Personeel</button>
+  </section>
+
+  <!-- Nieuwe gast -->
+  <section class="view" id="v-register">
+    <h1>Leuk dat je er bent!</h1>
+    <p class="lead">Maak een profiel aan. Dan onthouden we wat je bestelt, zodat je het de volgende keer met één tik opnieuw kunt kiezen.</p>
+    <div class="card">
+      <label for="r-name">Voornaam</label>
+      <input id="r-name" maxlength="40" autocomplete="off">
+      <label for="r-pin">Kies een pincode (4 cijfers)</label>
+      <input id="r-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+      <label for="r-pin2">Herhaal pincode</label>
+      <input id="r-pin2" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+      <label for="r-wish">Vaste wensen (optioneel)</label>
+      <input id="r-wish" maxlength="120" placeholder="Bijv. koffie met havermelk, geen ui">
+      <label class="check"><input type="checkbox" id="r-consent"> <span id="r-consent-txt"></span></label>
+      <p class="error" id="r-err"></p>
+      <button class="btn big" id="r-go">Profiel aanmaken</button>
+    </div>
+    <button class="btn ghost" data-go="welcome">Terug</button>
+  </section>
+
+  <!-- Terugkerende gast -->
+  <section class="view" id="v-back">
+    <h1 id="b-hello"></h1>
+    <div class="card" id="b-last-card">
+      <h2>Vorige keer bestelde je</h2>
+      <ul class="plain" id="b-last"></ul>
+      <button class="btn big" id="b-repeat">Hetzelfde nog een keer</button>
+    </div>
+    <div class="card" id="b-fav-card">
+      <h2>Jouw favorieten</h2>
+      <div class="chips" id="b-fav"></div>
+    </div>
+    <p class="wish" id="b-wish"></p>
+    <div class="row-btns">
+      <button class="btn" id="b-menu">Bekijk het menu</button>
+      <button class="btn ghost" id="b-data">Mijn gegevens</button>
+      <button class="btn ghost" id="b-out">Uitloggen</button>
+    </div>
+  </section>
+
+  <!-- Menu en bestellen -->
+  <section class="view" id="v-menu">
+    <div class="menu-head">
+      <h1>Menu</h1>
+      <button class="btn ghost" id="m-cancel">Annuleren</button>
+    </div>
+    <div class="menu-layout">
+      <div id="m-list"></div>
+      <aside class="cart">
+        <h2>Jouw bestelling</h2>
+        <ul class="plain" id="m-cart"></ul>
+        <p class="total">Totaal <strong id="m-total">€ 0,00</strong></p>
+        <label for="m-note">Opmerking voor de keuken</label>
+        <input id="m-note" maxlength="140">
+        <p class="error" id="m-err"></p>
+        <button class="btn big" id="m-order">Bestelling plaatsen</button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Bevestiging -->
+  <section class="view" id="v-done">
+    <h1>Bedankt!</h1>
+    <p class="lead">Je bestelling is doorgegeven aan de keuken. Neem gerust plaats.</p>
+    <p class="small">Dit scherm gaat zo vanzelf terug naar het begin.</p>
+    <button class="btn" data-go="welcome">Klaar</button>
+  </section>
+
+  <!-- Inzage en verwijderen (AVG) -->
+  <section class="view" id="v-mydata">
+    <h1>Mijn gegevens</h1>
+    <p>Dit is alles wat deze zaak over je bewaart. Je kunt het downloaden of je profiel direct verwijderen.</p>
+    <div class="card"><dl id="d-list"></dl></div>
+    <div class="row-btns">
+      <button class="btn" id="d-download">Download mijn gegevens</button>
+      <button class="btn danger" id="d-delete">Verwijder mijn profiel</button>
+      <button class="btn ghost" data-go="back">Terug</button>
+    </div>
+  </section>
+
+  <!-- Personeel: inloggen -->
+  <section class="view" id="v-staff-login">
+    <h1>Personeel</h1>
+    <div class="card">
+      <label for="s-pin">Personeelspincode</label>
+      <input id="s-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off">
+      <p class="error" id="s-err"></p>
+      <button class="btn big" id="s-go">Openen</button>
+    </div>
+    <button class="btn ghost" data-go="welcome">Terug</button>
+  </section>
+
+  <!-- Personeel: beheer -->
+  <section class="view" id="v-staff">
+    <div class="menu-head">
+      <h1>Beheer</h1>
+      <button class="btn ghost" id="st-out">Sluiten</button>
+    </div>
+    <nav class="tabs">
+      <button data-tab="orders" class="active">Bestellingen</button>
+      <button data-tab="menu">Menu</button>
+      <button data-tab="guests">Gasten</button>
+      <button data-tab="settings">Instellingen</button>
+    </nav>
+    <div class="tab" id="t-orders"><div id="o-list"></div></div>
+    <div class="tab" id="t-menu">
+      <table class="grid"><thead><tr><th>Gerecht</th><th>Categorie</th><th>Prijs (€)</th><th>Beschikbaar</th><th></th></tr></thead><tbody id="mm-body"></tbody></table>
+      <div class="add-row">
+        <input id="mm-name" placeholder="Nieuw gerecht" maxlength="50">
+        <input id="mm-cat" placeholder="Categorie" maxlength="30">
+        <input id="mm-price" placeholder="Prijs" inputmode="decimal" maxlength="7">
+        <button class="btn" id="mm-add">Toevoegen</button>
+      </div>
+      <p class="error" id="mm-err"></p>
+    </div>
+    <div class="tab" id="t-guests">
+      <p class="small">Profielen worden automatisch verwijderd als een gast <span id="g-ret"></span> dagen niet is geweest.</p>
+      <table class="grid"><thead><tr><th>Voornaam</th><th>Laatste bezoek</th><th>Bestellingen</th><th></th></tr></thead><tbody id="g-body"></tbody></table>
+    </div>
+    <div class="tab" id="t-settings">
+      <label for="cfg-name">Naam van de zaak</label>
+      <input id="cfg-name" maxlength="60">
+      <label for="cfg-ret">Bewaartermijn gastprofielen (dagen)</label>
+      <input id="cfg-ret" inputmode="numeric" maxlength="4">
+      <button class="btn" id="cfg-save">Opslaan</button>
+      <p class="ok" id="cfg-ok"></p>
+      <h2>Alles wissen</h2>
+      <p class="small">Verwijdert alle gasten, bestellingen, het menu en de instellingen van dit apparaat.</p>
+      <button class="btn danger" id="cfg-wipe">Alles wissen</button>
+    </div>
+  </section>
+</main>
+</body>
+</html>
